@@ -23,11 +23,13 @@ public final class SelectStatement
 
     private final SQLConnectionFactory connectionFactory;
     private final Executor async;
+    private Map<Integer, Object> setValues;
 
     public SelectStatement(SQLConnectionFactory connectionFactory, Executor async)
     {
         this.connectionFactory = connectionFactory;
         this.async = async;
+        this.setValues = new HashMap<>();
     }
 
     public SelectStatement everything()
@@ -55,7 +57,8 @@ public final class SelectStatement
         {
             String key = keys[0];
             Object value = values[0];
-            STATEMENT.append( key ).append( '=' ).append( value );
+            STATEMENT.append( key ).append( '=' ).append( '?' );
+            setValues.put( 1, value );
             return this;
         }
         for ( int i = 0; i < keys.length; i++ )
@@ -64,15 +67,16 @@ public final class SelectStatement
             Object value = values[i];
             if ( i == 0 )
             {
-                STATEMENT.append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( key ).append( '=' ).append( '?' ).append( ',' );
             } else if ( i == ( keys.length - 1 ) )
             {
                 // last key=value pair
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' );
             } else
             {
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' ).append( ',' );
             }
+            setValues.put( i + 1, value );
         }
         return this;
     }
@@ -86,6 +90,10 @@ public final class SelectStatement
             {
                 try ( PreparedStatement statement = connection.prepareStatement( STATEMENT.toString() ) )
                 {
+                    for ( Map.Entry<Integer, Object> entry : setValues.entrySet() )
+                    {
+                        statement.setObject( entry.getKey(), entry.getValue() );
+                    }
                     try ( ResultSet result = statement.executeQuery() )
                     {
                         ResultSetMetaData metaData = result.getMetaData();
@@ -102,6 +110,9 @@ public final class SelectStatement
                         }
                         return new StatementResultSet( results );
                     }
+                } finally
+                {
+                    setValues.clear();
                 }
             }
         }, async );

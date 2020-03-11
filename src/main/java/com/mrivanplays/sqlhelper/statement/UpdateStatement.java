@@ -5,6 +5,9 @@ import com.mrivanplays.sqlhelper.util.FutureFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -15,11 +18,13 @@ public final class UpdateStatement
 
     private final SQLConnectionFactory connectionFactory;
     private final Executor async;
+    private Map<Integer, Object> setValues;
 
     public UpdateStatement(SQLConnectionFactory connectionFactory, Executor async)
     {
         this.connectionFactory = connectionFactory;
         this.async = async;
+        this.setValues = new HashMap<>();
     }
 
     public UpdateStatement tableName(String tableName)
@@ -34,7 +39,8 @@ public final class UpdateStatement
         {
             String key = keys[0];
             Object value = values[0];
-            STATEMENT.append( key ).append( '=' ).append( value );
+            STATEMENT.append( key ).append( '=' ).append( '?' );
+            setValues.put( 1, value );
             return this;
         }
         for ( int i = 0; i < keys.length; i++ )
@@ -43,15 +49,16 @@ public final class UpdateStatement
             Object value = values[i];
             if ( i == 0 )
             {
-                STATEMENT.append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( key ).append( '=' ).append( '?' ).append( ',' );
             } else if ( i == ( keys.length - 1 ) )
             {
                 // last key=value pair
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' );
             } else
             {
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' ).append( ',' );
             }
+            setValues.put( i + 1, value );
         }
         return this;
     }
@@ -59,11 +66,21 @@ public final class UpdateStatement
     public UpdateStatement where(String[] keys, Object[] values)
     {
         STATEMENT.append( ' ' ).append( "WHERE" ).append( ' ' );
+        int nextIndex;
+        OptionalInt highestIndexOptional = setValues.keySet().stream().mapToInt( i -> i ).max();
+        if ( highestIndexOptional.isPresent() )
+        {
+            nextIndex = highestIndexOptional.getAsInt() + 1;
+        } else
+        {
+            nextIndex = 1;
+        }
         if ( keys.length == 1 )
         {
             String key = keys[0];
             Object value = values[0];
-            STATEMENT.append( key ).append( '=' ).append( value );
+            STATEMENT.append( key ).append( '=' ).append( '?' );
+            setValues.put( nextIndex, value );
             return this;
         }
         for ( int i = 0; i < keys.length; i++ )
@@ -72,15 +89,16 @@ public final class UpdateStatement
             Object value = values[i];
             if ( i == 0 )
             {
-                STATEMENT.append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( key ).append( '=' ).append( '?' ).append( ',' );
             } else if ( i == ( keys.length - 1 ) )
             {
                 // last key=value pair
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' );
             } else
             {
-                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( value ).append( ',' );
+                STATEMENT.append( ' ' ).append( key ).append( '=' ).append( '?' ).append( ',' );
             }
+            setValues.put( nextIndex + i, value );
         }
         return this;
     }
@@ -94,7 +112,14 @@ public final class UpdateStatement
             {
                 try ( PreparedStatement statement = connection.prepareStatement( STATEMENT.toString() ) )
                 {
+                    for ( Map.Entry<Integer, Object> entry : setValues.entrySet() )
+                    {
+                        statement.setObject( entry.getKey(), entry.getValue() );
+                    }
                     statement.executeUpdate();
+                } finally
+                {
+                    setValues.clear();
                 }
             }
         }, async );

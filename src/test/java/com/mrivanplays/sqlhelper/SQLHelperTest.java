@@ -1,15 +1,18 @@
 package com.mrivanplays.sqlhelper;
 
-import com.mrivanplays.sqlhelper.statement.result.StatementResult;
 import java.sql.SQLException;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SQLHelperTest
 {
 
-    @Test
-    public void connectAndPerformTasks()
+    private SQLHelper sqlHelper;
+
+    @Before
+    public void initialize()
     {
         ConnectionConfig connectionConfig = new ConnectionConfig();
         connectionConfig.setIp( "localhost" );
@@ -19,8 +22,19 @@ public class SQLHelperTest
         connectionConfig.setConnectionType( ConnectionType.MYSQL );
         connectionConfig.setDatabaseName( "testserver" );
 
-        SQLHelper sqlHelper = new SQLHelper( connectionConfig, null );
+        sqlHelper = new SQLHelper( connectionConfig, null );
         sqlHelper.connect();
+    }
+
+    @After
+    public void closeConnection()
+    {
+        sqlHelper.close();
+    }
+
+    @Test
+    public void connectAndPerformTasks()
+    {
         try
         {
             sqlHelper.create().tableName( "test_table" ).columns( "id INTEGER", "name VARCHAR(255)" ).executeUpdate();
@@ -35,11 +49,7 @@ public class SQLHelperTest
                     return;
                 }
 
-                for ( StatementResult result : resultSet )
-                {
-                    System.out.println( "ID: " + result.getNumber( "id" ).intValue() );
-                    System.out.println( "Name: " + result.getObject( "name" ) );
-                }
+                Assert.assertTrue( resultSet.getResults().size() > 0 );
             } );
 
             sqlHelper.create().tableName( "another_test" ).columns( "id INTEGER", "performAction BOOLEAN" ).executeUpdate();
@@ -53,11 +63,7 @@ public class SQLHelperTest
                     return;
                 }
 
-                for ( StatementResult result : resultSet )
-                {
-                    System.out.println( "ID: " + result.getNumber( "id" ).intValue() );
-                    System.out.println( "Perform action: " + result.getBoolean( "performAction" ) );
-                }
+                Assert.assertTrue( resultSet.getResults().size() > 0 );
             } );
             sqlHelper.update().tableName( "another_test" )
                 .values( new String[] { "performAction" }, new Object[] { false } )
@@ -74,12 +80,7 @@ public class SQLHelperTest
                         Assert.fail();
                         return;
                     }
-
-                    for ( StatementResult result : resultSet )
-                    {
-                        System.out.println( "ID: " + result.getNumber( "id" ).intValue() );
-                        System.out.println( "Perform action: " + result.getBoolean( "performAction" ) );
-                    }
+                    Assert.assertTrue( resultSet.getResults().size() > 0 );
                 } );
 
             sqlHelper.create().tableName( "only_one_column" ).columns( "id INTEGER" ).executeUpdate();
@@ -89,6 +90,5 @@ public class SQLHelperTest
             e.printStackTrace();
             Assert.fail();
         }
-        sqlHelper.close();
     }
 }
