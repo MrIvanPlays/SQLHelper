@@ -4,14 +4,18 @@ import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
 import com.mrivanplays.sqlhelper.connection.implementation.MariaDBConnectionFactory;
 import com.mrivanplays.sqlhelper.connection.implementation.MySQLConnectionFactory;
 import com.mrivanplays.sqlhelper.connection.implementation.PostgreSQLConnectionFactory;
+import com.mrivanplays.sqlhelper.statement.AlterStatement;
 import com.mrivanplays.sqlhelper.statement.CreateStatement;
 import com.mrivanplays.sqlhelper.statement.DeleteStatement;
+import com.mrivanplays.sqlhelper.statement.DropStatement;
 import com.mrivanplays.sqlhelper.statement.InsertStatement;
 import com.mrivanplays.sqlhelper.statement.SelectStatement;
 import com.mrivanplays.sqlhelper.statement.UpdateStatement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 /**
@@ -84,6 +88,17 @@ public final class SQLHelper
     }
 
     /**
+     * Returns whenever the specified {@link ConnectionType} is already registered.
+     *
+     * @param connectionType the connection type you want to check if its registered or not
+     * @return <code>true</code> if registered, <code>false</code> otherwise
+     */
+    public boolean isRegistered(ConnectionType connectionType)
+    {
+        return connectionFactoryRegistry.containsKey( connectionType );
+    }
+
+    /**
      * Sets a new {@link ConnectionConfig}.
      *
      * @param connectionConfig value
@@ -102,6 +117,16 @@ public final class SQLHelper
     public void setAsyncExecutor(Executor async)
     {
         this.async = async;
+    }
+
+    /**
+     * Returns an unmodifiable {@link Set}, containing all known {@link ConnectionType ConnectionTypes}
+     *
+     * @return connection types
+     */
+    public Set<ConnectionType> getKnownConnectionTypes()
+    {
+        return Collections.unmodifiableSet( connectionFactoryRegistry.keySet() );
     }
 
     /**
@@ -157,6 +182,28 @@ public final class SQLHelper
     {
         SQLConnectionFactory connectionFactory = connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
         return new DeleteStatement( connectionFactory, async );
+    }
+
+    /**
+     * Creates a new "ALTER" query object.
+     *
+     * @return alter statement
+     */
+    public AlterStatement alterTable()
+    {
+        SQLConnectionFactory connectionFactory = connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
+        return new AlterStatement( connectionFactory, async );
+    }
+
+    /**
+     * Creates a new "DROP" query object.
+     *
+     * @return drop statement
+     */
+    public DropStatement dropTable()
+    {
+        SQLConnectionFactory connectionFactory = connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
+        return new DropStatement( connectionFactory, async );
     }
 
     //

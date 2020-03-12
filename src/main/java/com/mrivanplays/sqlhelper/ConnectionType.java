@@ -25,6 +25,16 @@ public final class ConnectionType
      */
     public static final ConnectionType MARIADB = new ConnectionType( "mariadb" );
 
+    /**
+     * Returns the default values as an array.
+     *
+     * @return default values
+     */
+    public static ConnectionType[] defaultValues()
+    {
+        return new ConnectionType[] { MYSQL, MARIADB, POSTGRESQL };
+    }
+
     private final String name;
 
     public ConnectionType(String name)
@@ -38,6 +48,33 @@ public final class ConnectionType
      * @return name
      */
     public String getName()
+    {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        ConnectionType that = (ConnectionType) o;
+        return getName().equals( that.getName() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( getName() );
+    }
+
+    @Override
+    public String toString()
     {
         return name;
     }
