@@ -66,6 +66,9 @@
 
     <profiles>
         <profile>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
             <id>deployment</id>
             <build>
                 <defaultGoal>clean package</defaultGoal>
