@@ -1,21 +1,22 @@
 package com.mrivanplays.sqlhelper.statement;
 
 import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
+import com.mrivanplays.sqlhelper.statement.executement.StatementCompletionStage;
 import com.mrivanplays.sqlhelper.statement.result.StatementResult;
 import com.mrivanplays.sqlhelper.statement.result.StatementResultSet;
-import com.mrivanplays.sqlhelper.util.FutureFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+/**
+ * Represents an sql "SELECT" statement
+ */
 public final class SelectStatement
 {
 
@@ -32,24 +33,48 @@ public final class SelectStatement
         this.setValues = new HashMap<>();
     }
 
+    /**
+     * Mark that we should select every value in the table.
+     *
+     * @return this instance for chaining
+     */
     public SelectStatement everything()
     {
         STATEMENT.append( "*" );
         return this;
     }
 
+    /**
+     * Mark which columns we should select.
+     *
+     * @param columns the columns we want to select
+     * @return this instance for chaining
+     */
     public SelectStatement columns(String... columns)
     {
         STATEMENT.append( ' ' ).append( String.join( ", ", columns ) );
         return this;
     }
 
+    /**
+     * Mark the table from which we're going to select
+     *
+     * @param table table name
+     * @return this instance for chaining
+     */
     public SelectStatement from(String table)
     {
         STATEMENT.append( ' ' ).append( "FROM" ).append( ' ' ).append( table );
         return this;
     }
 
+    /**
+     * Mark the condition which the select should follow.
+     *
+     * @param keys keys
+     * @param values values
+     * @return this instance for chaining.
+     */
     public SelectStatement where(String[] keys, Object[] values)
     {
         STATEMENT.append( ' ' ).append( "WHERE" ).append( ' ' );
@@ -81,10 +106,27 @@ public final class SelectStatement
         return this;
     }
 
-    public CompletableFuture<StatementResultSet> executeQuery() throws SQLException
+    /**
+     * Mark the results limit.
+     *
+     * @param results maximum queries we should get
+     * @return this instance for chaining
+     */
+    public SelectStatement limit(int results)
+    {
+        STATEMENT.append( ' ' ).append( "LIMIT" ).append( ' ' ).append( results );
+        return this;
+    }
+
+    /**
+     * Executes the query.
+     *
+     * @return statement completion stage
+     */
+    public StatementCompletionStage<StatementResultSet> executeQuery()
     {
         STATEMENT.append( ';' );
-        return FutureFactory.makeFuture( () ->
+        return new StatementCompletionStage<>( () ->
         {
             try ( Connection connection = connectionFactory.getConnection() )
             {

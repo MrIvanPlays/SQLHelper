@@ -1,15 +1,14 @@
 package com.mrivanplays.sqlhelper.statement;
 
 import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
-import com.mrivanplays.sqlhelper.util.FutureFactory;
+import com.mrivanplays.sqlhelper.statement.executement.StatementCompletionStage;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 /**
- * Represents a "DROP" sql statement, usually used to delete tables.
+ * Represents a "DROP" sql statement, usually used to delete
+ * tables.
  */
 public final class DropStatement
 {
@@ -26,7 +25,8 @@ public final class DropStatement
     }
 
     /**
-     * Marks the statement to execute only if the specified table exists.
+     * Marks the statement to execute only if the specified table
+     * exists.
      *
      * @return this instance for chaining
      */
@@ -49,15 +49,14 @@ public final class DropStatement
     }
 
     /**
-     * Executes the query.
+     * Executes the update.
      *
-     * @return future
-     * @throws SQLException if an sql error occurred
+     * @return statement completion stage
      */
-    public CompletableFuture<Void> executeUpdate() throws SQLException
+    public StatementCompletionStage<Void> executeUpdate()
     {
         STATEMENT.append( ';' );
-        return FutureFactory.makeFuture( () ->
+        return new StatementCompletionStage<>( () ->
         {
             try ( Connection connection = connectionFactory.getConnection() )
             {

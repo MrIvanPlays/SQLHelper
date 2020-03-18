@@ -1,15 +1,16 @@
 package com.mrivanplays.sqlhelper.statement;
 
 import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
-import com.mrivanplays.sqlhelper.util.FutureFactory;
+import com.mrivanplays.sqlhelper.statement.executement.StatementCompletionStage;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+/**
+ * Represents an "DELETE" sql statement
+ */
 public final class DeleteStatement
 {
 
@@ -26,12 +27,25 @@ public final class DeleteStatement
         this.setValues = new HashMap<>();
     }
 
+    /**
+     * Mark the table from which we're going to delete.
+     *
+     * @param tableName the table name
+     * @return this instance for chaining
+     */
     public DeleteStatement from(String tableName)
     {
         STATEMENT.append( tableName );
         return this;
     }
 
+    /**
+     * Mark the sql statement's "where" values
+     *
+     * @param keys keys
+     * @param values values
+     * @return this instance for chaining
+     */
     public DeleteStatement where(String[] keys, Object[] values)
     {
         STATEMENT.append( ' ' ).append( "WHERE" ).append( ' ' );
@@ -63,10 +77,15 @@ public final class DeleteStatement
         return this;
     }
 
-    public CompletableFuture<Void> executeUpdate() throws SQLException
+    /**
+     * Executes the update.
+     *
+     * @return completion stage
+     */
+    public StatementCompletionStage<Void> executeUpdate()
     {
         STATEMENT.append( ';' );
-        return FutureFactory.makeFuture( () ->
+        return new StatementCompletionStage<>( () ->
         {
             try ( Connection connection = connectionFactory.getConnection() )
             {

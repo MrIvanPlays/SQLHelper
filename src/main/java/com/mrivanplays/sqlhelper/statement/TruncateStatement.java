@@ -7,51 +7,38 @@ import java.sql.PreparedStatement;
 import java.util.concurrent.Executor;
 
 /**
- * Represents an "CREATE" sql statement
+ * Represents an sql "TRUNCATE" statement
  */
-public final class CreateStatement
+public final class TruncateStatement
 {
 
-    private StringBuilder STATEMENT = new StringBuilder().append( "CREATE TABLE IF NOT EXISTS " );
+    private StringBuilder STATEMENT = new StringBuilder( "TRUNCATE TABLE " );
 
     private final SQLConnectionFactory connectionFactory;
     private final Executor async;
 
-    public CreateStatement(SQLConnectionFactory connectionFactory, Executor async)
+    public TruncateStatement(SQLConnectionFactory connectionFactory, Executor async)
     {
         this.connectionFactory = connectionFactory;
         this.async = async;
     }
 
     /**
-     * Mark the name of the created table.
+     * Mark the table that we're going to truncate
      *
-     * @param name the name of the table which is going to be
-     * created
+     * @param tableName name of the table
      * @return this instance for chaining
      */
-    public CreateStatement tableName(String name)
+    public TruncateStatement table(String tableName)
     {
-        STATEMENT.append( name );
+        STATEMENT.append( tableName );
         return this;
     }
 
     /**
-     * Mark the columns the table is going to have
+     * Executes the update.
      *
-     * @param columns columns
-     * @return this instance for chaining
-     */
-    public CreateStatement columns(String... columns)
-    {
-        STATEMENT.append( '(' ).append( String.join( ", ", columns ) ).append( ')' );
-        return this;
-    }
-
-    /**
-     * Executes the update
-     *
-     * @return completion stage
+     * @return statement completion stage
      */
     public StatementCompletionStage<Void> executeUpdate()
     {

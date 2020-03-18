@@ -1,11 +1,9 @@
 package com.mrivanplays.sqlhelper.statement;
 
 import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
-import com.mrivanplays.sqlhelper.util.FutureFactory;
+import com.mrivanplays.sqlhelper.statement.executement.StatementCompletionStage;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 /**
@@ -38,7 +36,8 @@ public final class AlterStatement
     }
 
     /**
-     * Mark the statement to add a column with the specified column name and column type
+     * Mark the statement to add a column with the specified
+     * column name and column type
      *
      * @param columnName name of the column you want to add
      * @param type type of the column you want to add
@@ -63,9 +62,11 @@ public final class AlterStatement
     }
 
     /**
-     * Make the statement to modify the specified column name's type to the specified new type.
+     * Make the statement to modify the specified column name's
+     * type to the specified new type.
      *
-     * @param columnName the column's name you want to change the type
+     * @param columnName the column's name you want to change the
+     * type
      * @param type the new type of the column
      * @return this instance for chaining
      */
@@ -76,15 +77,14 @@ public final class AlterStatement
     }
 
     /**
-     * Executes the statement
+     * Executes the update
      *
-     * @return completable future
-     * @throws SQLException if an sql error has occurred
+     * @return completion stage
      */
-    public CompletableFuture<Void> executeUpdate() throws SQLException
+    public StatementCompletionStage<Void> executeUpdate()
     {
         STATEMENT.append( ';' );
-        return FutureFactory.makeFuture( () ->
+        return new StatementCompletionStage<>( () ->
         {
             try ( Connection connection = connectionFactory.getConnection() )
             {

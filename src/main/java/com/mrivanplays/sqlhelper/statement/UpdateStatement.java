@@ -1,16 +1,17 @@
 package com.mrivanplays.sqlhelper.statement;
 
 import com.mrivanplays.sqlhelper.connection.SQLConnectionFactory;
-import com.mrivanplays.sqlhelper.util.FutureFactory;
+import com.mrivanplays.sqlhelper.statement.executement.StatementCompletionStage;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+/**
+ * Represents an sql "UPDATE" statement
+ */
 public final class UpdateStatement
 {
 
@@ -27,12 +28,26 @@ public final class UpdateStatement
         this.setValues = new HashMap<>();
     }
 
+    /**
+     * Mark the table name which we're going to update it's
+     * values.
+     *
+     * @param tableName name of the table
+     * @return this instance for chaining
+     */
     public UpdateStatement tableName(String tableName)
     {
         STATEMENT.append( tableName ).append( ' ' ).append( "SET" ).append( ' ' );
         return this;
     }
 
+    /**
+     * Mark the values we're going to update
+     *
+     * @param keys keys
+     * @param values values
+     * @return this instance for chaining
+     */
     public UpdateStatement values(String[] keys, Object[] values)
     {
         if ( keys.length == 1 )
@@ -63,6 +78,13 @@ public final class UpdateStatement
         return this;
     }
 
+    /**
+     * Mark the update condition the statement should follow.
+     *
+     * @param keys keys
+     * @param values values
+     * @return this instance for chaining
+     */
     public UpdateStatement where(String[] keys, Object[] values)
     {
         STATEMENT.append( ' ' ).append( "WHERE" ).append( ' ' );
@@ -103,10 +125,15 @@ public final class UpdateStatement
         return this;
     }
 
-    public CompletableFuture<Void> executeUpdate() throws SQLException
+    /**
+     * Executes the update.
+     *
+     * @return statement completion stage
+     */
+    public StatementCompletionStage<Void> executeUpdate()
     {
         STATEMENT.append( ';' );
-        return FutureFactory.makeFuture( () ->
+        return new StatementCompletionStage<>( () ->
         {
             try ( Connection connection = connectionFactory.getConnection() )
             {

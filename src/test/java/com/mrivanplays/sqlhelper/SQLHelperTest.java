@@ -1,6 +1,6 @@
 package com.mrivanplays.sqlhelper;
 
-import java.sql.SQLException;
+import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +22,7 @@ public class SQLHelperTest
         connectionConfig.setConnectionType( ConnectionType.MYSQL );
         connectionConfig.setDatabaseName( "testserver" );
 
-        sqlHelper = new SQLHelper( connectionConfig, null );
+        sqlHelper = new SQLHelper( connectionConfig, Executors.newSingleThreadExecutor() );
         sqlHelper.connect();
     }
 
@@ -35,60 +35,45 @@ public class SQLHelperTest
     @Test
     public void connectAndPerformTasks()
     {
-        try
+        sqlHelper.create().tableName( "test_table" ).columns( "id INTEGER", "name VARCHAR(255)" ).executeUpdate();
+        sqlHelper.insert().into( "test_table" ).columns( "id", "name" ).executeUpdate( 1, "MrIvanPlays" );
+        sqlHelper.insert().into( "test_table" ).columns( "id", "name" ).executeUpdate( 2, "Gbtank" );
+        sqlHelper.select().everything().from( "test_table" ).executeQuery().async( (resultSet) ->
         {
-            sqlHelper.create().tableName( "test_table" ).columns( "id INTEGER", "name VARCHAR(255)" ).executeUpdate();
-            sqlHelper.insert().into( "test_table" ).columns( "id", "name" ).executeUpdate( 1, "MrIvanPlays" );
-            sqlHelper.insert().into( "test_table" ).columns( "id", "name" ).executeUpdate( 2, "Gbtank" );
-            sqlHelper.select().everything().from( "test_table" ).executeQuery().whenComplete( (resultSet, error) ->
-            {
-                if ( error != null )
-                {
-                    error.printStackTrace();
-                    Assert.fail();
-                    return;
-                }
-
-                Assert.assertTrue( resultSet.getResults().size() > 0 );
-            } );
-
-            sqlHelper.create().tableName( "another_test" ).columns( "id INTEGER", "performAction BOOLEAN" ).executeUpdate();
-            sqlHelper.insert().into( "another_test" ).columns( "id", "performAction" ).executeUpdate( 1, true );
-            sqlHelper.select().everything().from( "another_test" ).executeQuery().whenComplete( (resultSet, error) ->
-            {
-                if ( error != null )
-                {
-                    error.printStackTrace();
-                    Assert.fail();
-                    return;
-                }
-
-                Assert.assertTrue( resultSet.getResults().size() > 0 );
-            } );
-            sqlHelper.update().tableName( "another_test" )
-                .values( new String[] { "performAction" }, new Object[] { false } )
-                .where( new String[] { "id" }, new Object[] { 1 } )
-                .executeUpdate();
-            sqlHelper.select().everything().from( "another_test" )
-                .where( new String[] { "id" }, new Object[] { 1 } )
-                .executeQuery()
-                .whenComplete( (resultSet, error) ->
-                {
-                    if ( error != null )
-                    {
-                        error.printStackTrace();
-                        Assert.fail();
-                        return;
-                    }
-                    Assert.assertTrue( resultSet.getResults().size() > 0 );
-                } );
-
-            sqlHelper.create().tableName( "only_one_column" ).columns( "id INTEGER" ).executeUpdate();
-            sqlHelper.insert().into( "only_one_column" ).columns( "id" ).executeUpdate( 1 );
-        } catch ( SQLException e )
+            Assert.assertTrue( resultSet.getResults().size() > 0 );
+        }, error ->
         {
-            e.printStackTrace();
+            error.printStackTrace();
             Assert.fail();
-        }
+        } );
+
+        sqlHelper.create().tableName( "another_test" ).columns( "id INTEGER", "performAction BOOLEAN" ).executeUpdate();
+        sqlHelper.insert().into( "another_test" ).columns( "id", "performAction" ).executeUpdate( 1, true );
+        sqlHelper.select().everything().from( "another_test" ).executeQuery().async( (resultSet) ->
+        {
+            Assert.assertTrue( resultSet.getResults().size() > 0 );
+        }, error ->
+        {
+            error.printStackTrace();
+            Assert.fail();
+        } );
+        sqlHelper.update().tableName( "another_test" )
+            .values( new String[] { "performAction" }, new Object[] { false } )
+            .where( new String[] { "id" }, new Object[] { 1 } )
+            .executeUpdate();
+        sqlHelper.select().everything().from( "another_test" )
+            .where( new String[] { "id" }, new Object[] { 1 } )
+            .executeQuery()
+            .async( (resultSet) ->
+            {
+                Assert.assertTrue( resultSet.getResults().size() > 0 );
+            }, error ->
+            {
+                error.printStackTrace();
+                Assert.fail();
+            } );
+
+        sqlHelper.create().tableName( "only_one_column" ).columns( "id INTEGER" ).executeUpdate();
+        sqlHelper.insert().into( "only_one_column" ).columns( "id" ).executeUpdate( 1 );
     }
 }

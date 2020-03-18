@@ -10,6 +10,7 @@ import com.mrivanplays.sqlhelper.statement.DeleteStatement;
 import com.mrivanplays.sqlhelper.statement.DropStatement;
 import com.mrivanplays.sqlhelper.statement.InsertStatement;
 import com.mrivanplays.sqlhelper.statement.SelectStatement;
+import com.mrivanplays.sqlhelper.statement.TruncateStatement;
 import com.mrivanplays.sqlhelper.statement.UpdateStatement;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +33,8 @@ public final class SQLHelper
      * Creates a new instance of this class.
      *
      * @param connectionConfig connection config
-     * @param async executor for asynchronous queries. If you want them synchronous, you can specify null.
+     * @param async executor for asynchronous queries. If you
+     * want them synchronous, you can specify null.
      */
     public SQLHelper(ConnectionConfig connectionConfig, Executor async)
     {
@@ -73,9 +75,12 @@ public final class SQLHelper
     /**
      * Registers a new connection factory
      *
-     * @param connectionType the connection type you want to register a factory for
-     * @param connectionFactory the connection factory you want to register
-     * @throws IllegalArgumentException if the connection type has already a registered factory
+     * @param connectionType the connection type you want to
+     * register a factory for
+     * @param connectionFactory the connection factory you want
+     * to register
+     * @throws IllegalArgumentException if the connection type
+     * has already a registered factory
      */
     public void registerConnectionFactory(ConnectionType connectionType, SQLConnectionFactory connectionFactory)
     {
@@ -88,10 +93,13 @@ public final class SQLHelper
     }
 
     /**
-     * Returns whenever the specified {@link ConnectionType} is already registered.
+     * Returns whenever the specified {@link ConnectionType} is
+     * already registered.
      *
-     * @param connectionType the connection type you want to check if its registered or not
-     * @return <code>true</code> if registered, <code>false</code> otherwise
+     * @param connectionType the connection type you want to
+     * check if its registered or not
+     * @return <code>true</code> if registered, <code>false</code>
+     * otherwise
      */
     public boolean isRegistered(ConnectionType connectionType)
     {
@@ -120,7 +128,8 @@ public final class SQLHelper
     }
 
     /**
-     * Returns an unmodifiable {@link Set}, containing all known {@link ConnectionType ConnectionTypes}
+     * Returns an unmodifiable {@link Set}, containing all known
+     * {@link ConnectionType ConnectionTypes}
      *
      * @return connection types
      */
@@ -204,6 +213,17 @@ public final class SQLHelper
     {
         SQLConnectionFactory connectionFactory = connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
         return new DropStatement( connectionFactory, async );
+    }
+
+    /**
+     * Creates a new "TRUNCATE" query object.
+     *
+     * @return truncate statement
+     */
+    public TruncateStatement truncate()
+    {
+        SQLConnectionFactory connectionFactory = connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
+        return new TruncateStatement( connectionFactory, async );
     }
 
     //

@@ -3,7 +3,8 @@ package com.mrivanplays.sqlhelper.statement.result;
 import java.util.Map;
 
 /**
- * Represents a statement result, featuring one row of all the columns a table has.
+ * Represents a statement result, featuring one row of all the
+ * columns a table has.
  */
 public final class StatementResult
 {
@@ -29,7 +30,8 @@ public final class StatementResult
     /**
      * Returns the column's value specified as a string.
      *
-     * @param column the column you want to get the value of as a string
+     * @param column the column you want to get the value of as a
+     * string
      * @return value string
      */
     public String getString(String column)
@@ -41,7 +43,8 @@ public final class StatementResult
     /**
      * Returns the column's value specified as a number
      *
-     * @param column the column you want to get the value of as a number
+     * @param column the column you want to get the value of as a
+     * number
      * @return value number
      */
     public Number getNumber(String column)
@@ -53,7 +56,8 @@ public final class StatementResult
     /**
      * Returns the column's value specified as a boolean
      *
-     * @param column the column you want to get the value of as a boolean
+     * @param column the column you want to get the value of as a
+     * boolean
      * @return value boolean
      */
     public Boolean getBoolean(String column)
