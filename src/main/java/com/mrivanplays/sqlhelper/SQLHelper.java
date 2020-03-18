@@ -73,6 +73,17 @@ public final class SQLHelper
     }
 
     /**
+     * Returns the {@link SQLConnectionFactory}, which
+     * corresponds to the specified {@link ConnectionType}
+     *
+     * @return connection factory
+     */
+    public SQLConnectionFactory getConnectionFactory()
+    {
+        return connectionFactoryRegistry.get( connectionConfig.getConnectionType() );
+    }
+
+    /**
      * Registers a new connection factory
      *
      * @param connectionType the connection type you want to
