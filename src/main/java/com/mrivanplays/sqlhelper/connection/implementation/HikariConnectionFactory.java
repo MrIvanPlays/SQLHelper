@@ -40,7 +40,7 @@ public abstract class HikariConnectionFactory implements SQLConnectionFactory
         config.addDataSourceProperty( "port", credentials.getPort() );
         config.addDataSourceProperty( "databaseName", credentials.getDatabaseName() );
         config.setUsername( credentials.getUsername() );
-        config.setPassword( credentials.getPassword() );
+        config.setPassword( credentials.getPassword() == null ? "" : credentials.getPassword() );
     }
 
     @Override

@@ -29,6 +29,6 @@ public class PostgreSQLConnectionFactory extends HikariConnectionFactory
         config.addDataSourceProperty( "portNumber", credentials.getPort() );
         config.addDataSourceProperty( "databaseName", credentials.getDatabaseName() );
         config.addDataSourceProperty( "user", credentials.getUsername() );
-        config.addDataSourceProperty( "password", credentials.getPassword() );
+        config.addDataSourceProperty( "password", credentials.getPassword() == null ? "" : credentials.getPassword() );
     }
 }

@@ -77,6 +77,17 @@ public final class StatementCompletionStage<T>
     }
 
     /**
+     * Executes the completion stage asynchronously without
+     * providing a callback.
+     */
+    public void async()
+    {
+        async( ($) ->
+        {
+        } );
+    }
+
+    /**
      * Executes the completion stage asynchronously if async
      * executor is present
      *
@@ -133,7 +144,14 @@ public final class StatementCompletionStage<T>
     {
         try
         {
-            consumer.accept( callable.call(), null );
+            if ( callable == null )
+            {
+                runnable.run();
+                consumer.accept( null, null );
+            } else
+            {
+                consumer.accept( callable.call(), null );
+            }
         } catch ( Throwable e )
         {
             consumer.accept( null, e );
